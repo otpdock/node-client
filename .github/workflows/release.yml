@@ -74,6 +74,7 @@ jobs:
           rc-wording: 'rc,alpha,beta'
           target-branch: 'main'
           preid: 'beta'
+          default: 'prerelease'
           bump-policy: 'all'
           commit-message: 'chore(release): bump version to {{version}}'
           
