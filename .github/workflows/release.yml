@@ -62,9 +62,12 @@ jobs:
       - name: Generate changelog and bump beta version
         run: npm run release:beta
 
+      - name: Read version from package.json
+        id: get_version
+        run: echo "tag=v$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+
       - name: Push changes and tags
-        run: |
-          git push origin main --follow-tags
+        run: git push origin main --follow-tags
 
       - name: Publish to NPM with beta tag
         run: npm publish --access public --tag beta
@@ -74,7 +77,8 @@ jobs:
       - name: Create GitHub prerelease
         uses: softprops/action-gh-release@v1
         with:
-          name: Release ${{ github.ref_name }}
+          tag_name: ${{ steps.get_version.outputs.tag }}
+          name: Release ${{ steps.get_version.outputs.tag }}
           body_path: CHANGELOG.md
           draft: false
           prerelease: true
