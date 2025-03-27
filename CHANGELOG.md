@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.1-beta.3](https://github.com/otpdock/node-client/compare/v0.1.1-beta.2...v0.1.1-beta.3) (2025-03-27)
+
+
+### Bug Fixes
+
+* adjust body structure ([415ec18](https://github.com/otpdock/node-client/commit/415ec18f9fea100737ccfa1d7f7d1499eed3a3d5))
+
 ### [0.1.1-beta.2](https://github.com/otpdock/node-client/compare/v0.1.1-beta.1...v0.1.1-beta.2) (2025-03-27)
 
 ### 0.1.1-beta.1 (2025-03-27)
