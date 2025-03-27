@@ -21,31 +21,37 @@ describe('OtpDockClient', () => {
     const commonOtpEmails = [
       {
         subject: 'Your verification code',
-        body: 'Your verification code is: 123456'
+        text: 'Your verification code is: 123456',
+        html: '<p>Your verification code is: 123456</p>'
       },
       {
         subject: 'Security Code',
-        body: 'Use this code to verify your account: 987654'
+        text: 'Use this code to verify your account: 987654',
+        html: '<p>Use this code to verify your account: 987654</p>'
       },
       {
         subject: 'One-Time Password',
-        body: 'Here is your OTP: 456789. Valid for 5 minutes.'
+        text: 'Here is your OTP: 456789. Valid for 5 minutes.',
+        html: '<p>Here is your OTP: 456789. Valid for 5 minutes.</p>'
       },
       {
         subject: '2FA Code',
-        body: 'Your two-factor authentication code is 234567'
+        text: 'Your two-factor authentication code is 234567',
+        html: '<p>Your two-factor authentication code is 234567</p>'
       },
       {
         subject: 'Sign-in code',
-        body: 'Enter this code to complete sign in: 876543'
+        text: 'Enter this code to complete sign in: 876543',
+        html: '<p>Enter this code to complete sign in: 876543</p>'
       },
       {
         subject: 'Verification Required',
-        body: 'To complete your action, enter code: 345678'
+        text: 'To complete your action, enter code: 345678',
+        html: '<p>To complete your action, enter code: 345678</p>'
       },
       {
         subject: 'Account Security',
-        body: `
+        text: `
           Hello,
           
           We received a request to verify your account.
@@ -56,19 +62,29 @@ describe('OtpDockClient', () => {
           
           Thanks,
           Security Team
+        `,
+        html: `
+          <p>Hello,</p>
+          <p>We received a request to verify your account.</p>
+          <p>Your verification code is: 567890</p>
+          <p>If you didn't request this code, please ignore this email.</p>
+          <p>Thanks,<br>Security Team</p>
         `
       },
       {
         subject: 'Complete Your Registration',
-        body: 'Welcome! Please use 789012 to complete your registration.'
+        text: 'Welcome! Please use 789012 to complete your registration.',
+        html: '<p>Welcome! Please use 789012 to complete your registration.</p>'
       },
       {
         subject: 'Login Attempt',
-        body: 'We detected a login attempt. Use code 901234 to verify it was you.'
+        text: 'We detected a login attempt. Use code 901234 to verify it was you.',
+        html: '<p>We detected a login attempt. Use code 901234 to verify it was you.</p>'
       },
       {
         subject: 'Password Reset',
-        body: 'Your password reset code is 432109. This code will expire in 15 minutes.'
+        text: 'Your password reset code is 432109. This code will expire in 15 minutes.',
+        html: '<p>Your password reset code is 432109. This code will expire in 15 minutes.</p>'
       }
     ];
 
@@ -76,7 +92,7 @@ describe('OtpDockClient', () => {
       for (const email of commonOtpEmails) {
         const mockFetch = jest.fn().mockResolvedValue({
           ok: true,
-          json: () => Promise.resolve({ body: email.body })
+          json: () => Promise.resolve({ content: { text: email.text, html: email.html } })
         });
 
         global.fetch = mockFetch;
@@ -89,22 +105,22 @@ describe('OtpDockClient', () => {
 
     it('should handle various OTP formats', async () => {
       const otpVariations = [
-        { body: 'Your code is 123-456', expected: '123456' },
-        { body: 'Code: 123 456', expected: '123456' },
-        { body: 'Enter 12.34.56', expected: '123456' },
-        { body: 'OTP: A1B2C3', expected: 'A1B2C3' },  // Alphanumeric
-        { body: 'Use code 123456.', expected: '123456' },
-        { body: 'CODE=123456;', expected: '123456' },
-        { body: '123456 is your code', expected: '123456' },
-        { body: '[123456]', expected: '123456' },
-        { body: 'Your OTP is "123456"', expected: '123456' },
-        { body: '123456 expires in 5 minutes', expected: '123456' }
+        { text: 'Your code is 123-456', html: '<p>Your code is 123-456</p>', expected: '123456' },
+        { text: 'Code: 123 456', html: '<p>Code: 123 456</p>', expected: '123456' },
+        { text: 'Enter 12.34.56', html: '<p>Enter 12.34.56</p>', expected: '123456' },
+        { text: 'OTP: A1B2C3', html: '<p>OTP: A1B2C3</p>', expected: 'A1B2C3' },  // Alphanumeric
+        { text: 'Use code 123456.', html: '<p>Use code 123456.</p>', expected: '123456' },
+        { text: 'CODE=123456;', html: '<p>CODE=123456;</p>', expected: '123456' },
+        { text: '123456 is your code', html: '<p>123456 is your code</p>', expected: '123456' },
+        { text: '[123456]', html: '<p>[123456]</p>', expected: '123456' },
+        { text: 'Your OTP is "123456"', html: '<p>Your OTP is "123456"</p>', expected: '123456' },
+        { text: '123456 expires in 5 minutes', html: '<p>123456 expires in 5 minutes</p>', expected: '123456' }
       ];
 
-      for (const { body, expected } of otpVariations) {
+      for (const { text, html, expected } of otpVariations) {
         const mockFetch = jest.fn().mockResolvedValue({
           ok: true,
-          json: () => Promise.resolve({ body })
+          json: () => Promise.resolve({ content: { text, html } })
         });
 
         global.fetch = mockFetch;
@@ -113,6 +129,32 @@ describe('OtpDockClient', () => {
         const otp = await client.getOtp({ inbox: 'test123' });
         expect(otp).toBe(expected);
       }
+    });
+
+    it('should extract OTP when only text content is available', async () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ content: { text: 'Your code is 123456' } })
+      });
+
+      global.fetch = mockFetch;
+      const client = new OtpDockClient('test-api-key');
+      
+      const otp = await client.getOtp({ inbox: 'test123' });
+      expect(otp).toBe('123456');
+    });
+
+    it('should extract OTP when only html content is available', async () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ content: { html: '<p>Your code is 123456</p>' } })
+      });
+
+      global.fetch = mockFetch;
+      const client = new OtpDockClient('test-api-key');
+      
+      const otp = await client.getOtp({ inbox: 'test123' });
+      expect(otp).toBe('123456');
     });
 
     it('should throw error if inbox is not provided', async () => {
@@ -124,7 +166,7 @@ describe('OtpDockClient', () => {
       global.fetch = jest.fn(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ body: 'Your OTP is 123456' }),
+          json: () => Promise.resolve({ content: { text: 'Your OTP is 123456', html: '<p>Your OTP is 123456</p>' } }),
         } as Response)
       );
 
@@ -178,7 +220,7 @@ describe('OtpDockClient', () => {
         }))
         .mockImplementationOnce(() => Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ body: 'this is your otp: 123456' })
+          json: () => Promise.resolve({ content: { text: 'this is your otp: 123456', html: '<p>this is your otp: 123456</p>' } })
         }));
 
       global.fetch = mockFetch;

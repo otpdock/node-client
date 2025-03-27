@@ -47,18 +47,21 @@ export class OtpDockClient {
         },
       });
       if (response && response.ok) {
-        const { body } = await response.json() as { body: string };
+        const { content } = await response.json() as { content: { text: string, html: string } };
+
+        const text = content.text
+        const html = content.html?.replace(/<[^>]*>/g, '') // Strip HTML tags
 
         const otp = extractOtp
-          ? extractOtp(body)
-          : this.extractWithDefaultRegex(body);
+          ? extractOtp(text || html)
+          : this.extractWithDefaultRegex(text || html);
 
         if (otp) return otp;
 
         if (this.debug) {
-          console.warn(`[OtpDock] OTP not found. Full email body:\n${body}`);
+          console.warn(`[OtpDock] OTP not found. Full email body:\n${text || html}`);
         } else {
-          const preview = body.slice(0, 500);
+          const preview = (text || html).slice(0, 500);
           console.warn(`[OtpDock] OTP not found. Email preview:\n${preview}`);
         }
 
