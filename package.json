@@ -1,6 +1,6 @@
 {
   "name": "@otpdock/client",
-  "version": "0.1.2-0",
+  "version": "0.1.0",
   "description": "Fetch OTPs from your otpdock.com inbox for end-to-end testing",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
