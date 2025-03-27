@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: OTPDock Support
+    url: https://otpdock.com/support
+    about: Please visit our support page for help with your OTPDock account or API.
+  - name: Security Issues
+    url: mailto:support@otpdock.com
+    about: Please report security issues here. 
