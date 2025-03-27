@@ -1,3 +1,16 @@
+# Changelog
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+### 0.1.1-beta.0 (2025-03-27)
+
+
+### Bug Fixes
+
+* initial test ([4f4beba](https://github.com/otpdock/node-client/commit/4f4beba460fa1d871673ff9ba38086fc4cd9e8c9))
+* initial test ([b0d81c3](https://github.com/otpdock/node-client/commit/b0d81c3973b56ad83225b41774ed3e5c2588013d))
+* versioning with beta ([747efb4](https://github.com/otpdock/node-client/commit/747efb4bc703cbb266d83104fc6b003dd8133121))
+
 ## 0.1.1 (2025-03-27)
 
 
