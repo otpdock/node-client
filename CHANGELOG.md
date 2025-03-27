@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.1-beta.4](https://github.com/otpdock/node-client/compare/v0.1.1-beta.3...v0.1.1-beta.4) (2025-03-27)
+
+
+### Bug Fixes
+
+* config type ([b0f44e1](https://github.com/otpdock/node-client/commit/b0f44e1ace0ef7ffa7c87cbd97cf342ed990c6b8))
+
 ### [0.1.1-beta.3](https://github.com/otpdock/node-client/compare/v0.1.1-beta.2...v0.1.1-beta.3) (2025-03-27)
 
 
