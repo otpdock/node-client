@@ -75,7 +75,9 @@ jobs:
           target-branch: 'main'
           preid: 'beta'
           default: 'prerelease'
+          tag-prefix: 'v'
           bump-policy: 'all'
+          prerelease: true
           commit-message: 'chore(release): bump version to {{version}}'
           
       - name: Push changes
