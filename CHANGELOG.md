@@ -1,3 +1,12 @@
+# [0.1.0](https://github.com/otpdock/node-client/compare/v0.1.2-0...v0.1.0) (2025-03-27)
+
+
+### Bug Fixes
+
+* initial test ([b0d81c3](https://github.com/otpdock/node-client/commit/b0d81c3973b56ad83225b41774ed3e5c2588013d))
+
+
+
 # 0.1.0-beta.0 (2025-03-27)
 
 
