@@ -1,3 +1,7 @@
+# 0.1.0-beta.0 (2025-03-27)
+
+
+
 # Changelog
 
 All notable changes to the OTPDock Client will be documented in this file.
