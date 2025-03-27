@@ -35,7 +35,9 @@
   ],
   "license": "MIT",
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "README.md"
   ],
   "repository": {
     "type": "git",

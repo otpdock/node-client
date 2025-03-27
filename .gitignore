@@ -12,7 +12,6 @@ yarn.lock
 !.env.example
 
 # Compiled output
-dist/
 build/
 out/
 *.pyc

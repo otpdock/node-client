@@ -1,29 +1,35 @@
 # Source
 src/
+tests/
+**/*.test.ts
+**/*.spec.ts
+src/test-utils.ts
 
-# Tests
-test/
-*.test.ts
-*.spec.ts
-jest.config.js
-
-# Development configs
+# Config files
 .github/
-.vscode/
-.editorconfig
-.eslintrc
-.prettierrc
-tsconfig.json
-
-# Git
-.git/
 .gitignore
+.npmignore
+tsconfig.json
+jest.config.js
+.eslintrc*
+.prettierrc*
+
+# Development files
+coverage/
+.nyc_output/
+.jest/
+junit.xml
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
 
 # Misc
 node_modules/
-coverage/
-*.log
-.DS_Store
+*.DS_Store
 
 # Development files
 examples/
