@@ -65,6 +65,10 @@ jobs:
       - name: Push changes and tags
         run: git push origin main --follow-tags
 
+      - name: Get version
+        id: get_version
+        run: echo "tag=v$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
       - name: Publish to NPM with beta tag
         run: npm publish --access public --tag beta
         env:
