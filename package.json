@@ -47,7 +47,7 @@
   "homepage": "https://github.com/otpdock/node-client#readme",
   "devDependencies": {
     "@types/jest": "^29.5.14",
-    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
     "@typescript-eslint/parser": "^5.0.0",
     "@size-limit/preset-small-lib": "^11.0.0",
     "conventional-changelog-cli": "^4.1.0",
