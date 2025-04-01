@@ -10,7 +10,7 @@ type GetOtpOptions = {
   extractOtp?: (emailBody: string) => string | null;
 };
 
-const BASE_URL = 'https://api.otpdock.com';
+const BASE_URL = 'https://ci-api.otpdock.com';
 const DEFAULT_TIMEOUT = 10_000;
 const DEFAULT_INTERVAL = 1000;
 const DEFAULT_SINCE = Date.now();
