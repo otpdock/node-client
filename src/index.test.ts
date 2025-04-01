@@ -90,16 +90,32 @@ describe('OtpDockClient', () => {
 
     it('should extract OTP from various email formats', async () => {
       for (const email of commonOtpEmails) {
-        const mockFetch = jest.fn().mockResolvedValue({
+        // Test with text content
+        const mockFetchText = jest.fn().mockResolvedValue({
           ok: true,
-          json: () => Promise.resolve({ content: { text: email.text, html: email.html } })
+          json: () => Promise.resolve({ contentPreview: email.text })
         });
 
-        global.fetch = mockFetch;
-        const client = new OtpDockClient('test-api-key');
+        global.fetch = mockFetchText;
+        const clientText = new OtpDockClient('test-api-key');
         
-        const otp = await client.getOtp({ inbox: 'test123' });
-        expect(otp).toMatch(/^\d{6}$/); // Should extract 6-digit OTP
+        const otpFromText = await clientText.getOtp({ inbox: 'test123' });
+        expect(otpFromText).toMatch(/^\d{6}$/); // Should extract 6-digit OTP
+
+        // Test with HTML content
+        const mockFetchHtml = jest.fn().mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({ contentPreview: email.html })
+        });
+
+        global.fetch = mockFetchHtml;
+        const clientHtml = new OtpDockClient('test-api-key');
+        
+        const otpFromHtml = await clientHtml.getOtp({ inbox: 'test123' });
+        expect(otpFromHtml).toMatch(/^\d{6}$/); // Should extract 6-digit OTP
+
+        // Both should match
+        expect(otpFromText).toBe(otpFromHtml);
       }
     });
 
@@ -120,7 +136,7 @@ describe('OtpDockClient', () => {
       for (const { text, html, expected } of otpVariations) {
         const mockFetch = jest.fn().mockResolvedValue({
           ok: true,
-          json: () => Promise.resolve({ content: { text, html } })
+          json: () => Promise.resolve({ contentPreview: text })
         });
 
         global.fetch = mockFetch;
@@ -134,7 +150,7 @@ describe('OtpDockClient', () => {
     it('should extract OTP when only text content is available', async () => {
       const mockFetch = jest.fn().mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ content: { text: 'Your code is 123456' } })
+        json: () => Promise.resolve({ contentPreview: 'Your code is 123456' })
       });
 
       global.fetch = mockFetch;
@@ -147,7 +163,7 @@ describe('OtpDockClient', () => {
     it('should extract OTP when only html content is available', async () => {
       const mockFetch = jest.fn().mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ content: { html: '<p>Your code is 123456</p>' } })
+        json: () => Promise.resolve({ contentPreview: '<p>Your code is 123456</p>' })
       });
 
       global.fetch = mockFetch;
@@ -166,7 +182,7 @@ describe('OtpDockClient', () => {
       global.fetch = jest.fn(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ content: { text: 'Your OTP is 123456', html: '<p>Your OTP is 123456</p>' } }),
+          json: () => Promise.resolve({ contentPreview: 'Your OTP is 123456' }),
         } as Response)
       );
 
@@ -220,7 +236,7 @@ describe('OtpDockClient', () => {
         }))
         .mockImplementationOnce(() => Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ content: { text: 'this is your otp: 123456', html: '<p>this is your otp: 123456</p>' } })
+          json: () => Promise.resolve({ contentPreview: 'this is your otp: 123456' })
         }));
 
       global.fetch = mockFetch;
