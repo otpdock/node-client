@@ -20,12 +20,14 @@ const DEFAULT_SINCE = Date.now();
 
 class TemporaryInbox {
   private createdAt: number;
+  public email: string;
 
   constructor(
-    private email: string,
+    email: string,
     private inboxId: string,
     private client: OtpDockClient
   ) {
+    this.email = email;
     this.createdAt = Date.now();
   }
 
