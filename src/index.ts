@@ -2,8 +2,11 @@ type Config = {
   debug?: boolean;
 };
 
+type GenerateInboxOptions = {
+  prefix?: string;
+};
+
 type GetOtpOptions = {
-  inbox: string; // The inbox name (part before @ in inbox@org.otpdock.com)
   timeout?: number;
   interval?: number;
   since?: number; // timestamp (ms)
@@ -15,6 +18,29 @@ const DEFAULT_TIMEOUT = 10_000;
 const DEFAULT_INTERVAL = 1000;
 const DEFAULT_SINCE = Date.now();
 
+class TemporaryInbox {
+  private createdAt: number;
+
+  constructor(
+    private inboxName: string,
+    private client: OtpDockClient
+  ) {
+    this.createdAt = Date.now();
+  }
+
+  async getOtp(options: GetOtpOptions = {}): Promise<string> {
+    return this.client.getOtp({
+      ...options,
+      since: options.since ?? this.createdAt,
+      inbox: this.inboxName
+    });
+  }
+
+  toString(): string {
+    return this.inboxName;
+  }
+}
+
 export class OtpDockClient {
   private apiKey: string;
   private debug: boolean;
@@ -25,7 +51,21 @@ export class OtpDockClient {
     this.debug = config?.debug ?? false;
   }
 
-  async getOtp(options: GetOtpOptions): Promise<string> {
+  async generateTemporaryInbox(options: GenerateInboxOptions = {}): Promise<TemporaryInbox> {
+    const url = `${BASE_URL}/inboxes/generate`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ prefix: options.prefix }),
+      headers: {
+        'x-api-key': this.apiKey,
+      },
+    });
+    const { inbox } = await response.json() as { inbox: string };
+    return new TemporaryInbox(inbox, this);
+  }
+
+  async getOtp(options: GetOtpOptions & { inbox: string }): Promise<string> {
     const {
       inbox,
       timeout = DEFAULT_TIMEOUT,
@@ -39,7 +79,7 @@ export class OtpDockClient {
     const endTime = Date.now() + timeout;
 
     while (Date.now() < endTime) {
-      const response = await fetch(`${BASE_URL}/emails/latest?inbox=${inbox}&since=${since}`, {
+      const response = await fetch(`${BASE_URL}/emails?inbox=${inbox}&since=${since}`, {
         headers: {
           'x-api-key': this.apiKey,
         },
