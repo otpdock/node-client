@@ -22,7 +22,8 @@ class TemporaryInbox {
   private createdAt: number;
 
   constructor(
-    private inboxName: string,
+    private email: string,
+    private inboxId: string,
     private client: OtpDockClient
   ) {
     this.createdAt = Date.now();
@@ -32,12 +33,12 @@ class TemporaryInbox {
     return this.client.getOtp({
       ...options,
       since: options.since ?? this.createdAt,
-      inbox: this.inboxName
+      inbox: this.inboxId
     });
   }
 
-  toString(): string {
-    return this.inboxName;
+  getEmail(): string {
+    return this.email;
   }
 }
 
@@ -53,7 +54,7 @@ export class OtpDockClient {
 
   async generateTemporaryInbox(options: GenerateInboxOptions = {}): Promise<TemporaryInbox> {
     const url = `${BASE_URL}/inboxes/generate`;
-    
+
     const response = await fetch(url, {
       method: 'POST',
       body: JSON.stringify({ prefix: options.prefix }),
@@ -61,8 +62,8 @@ export class OtpDockClient {
         'x-api-key': this.apiKey,
       },
     });
-    const { inbox } = await response.json() as { inbox: string };
-    return new TemporaryInbox(inbox, this);
+    const { email, inboxId } = await response.json() as { email: string; inboxId: string };
+    return new TemporaryInbox(email, inboxId, this);
   }
 
   async getOtp(options: GetOtpOptions & { inbox: string }): Promise<string> {
