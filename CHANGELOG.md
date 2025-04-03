@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.1-beta.10](https://github.com/otpdock/node-client/compare/v0.1.1-beta.9...v0.1.1-beta.10) (2025-04-03)
+
+
+### Bug Fixes
+
+* assign email to the class ([1e94b2e](https://github.com/otpdock/node-client/commit/1e94b2e3bdacb724748f934730b6f0351dfd8b12))
+
 ### [0.1.1-beta.9](https://github.com/otpdock/node-client/compare/v0.1.1-beta.8...v0.1.1-beta.9) (2025-04-03)
 
 
