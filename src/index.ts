@@ -38,10 +38,6 @@ class TemporaryInbox {
       inbox: this.inboxId
     });
   }
-
-  getEmail(): string {
-    return this.email;
-  }
 }
 
 export class OtpDockClient {
@@ -55,7 +51,7 @@ export class OtpDockClient {
   }
 
   async generateTemporaryInbox(options: GenerateInboxOptions = {}): Promise<TemporaryInbox> {
-    const url = `${BASE_URL}/inboxes/generate`;
+    const url = `${BASE_URL}/inbox/generate`;
 
     const response = await fetch(url, {
       method: 'POST',
@@ -64,6 +60,9 @@ export class OtpDockClient {
         'x-api-key': this.apiKey,
       },
     });
+    if (!response.ok) {
+      throw new Error(`[OtpDock] Failed to generate inbox: ${response.status} ${response.statusText}`);
+    }
     const { email, inboxId } = await response.json() as { email: string; inboxId: string };
     return new TemporaryInbox(email, inboxId, this);
   }
