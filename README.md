@@ -1,7 +1,7 @@
 # @otpdock/client
 
 <p align="center">
-  <img src="https://otpdock.com/logo.png" alt="OTPDock Logo" width="200"/>
+  <img src="https://docs.otpdock.com/logo.png" alt="OTPDock Logo" width="200"/>
 </p>
 
 <p align="center">
@@ -11,7 +11,6 @@
 <p align="center">
   <a href="https://github.com/otpdock/node-client/actions"><img src="https://github.com/otpdock/node-client/workflows/Test/badge.svg" alt="Build Status"></a>
   <a href="https://github.com/otpdock/node-client/actions/workflows/release.yml"><img src="https://github.com/otpdock/node-client/workflows/Release/badge.svg" alt="Release Status"></a>
-  <a href="https://codecov.io/gh/otpdock/node-client"><img src="https://codecov.io/gh/otpdock/node-client/branch/main/graph/badge.svg" alt="Coverage Status"></a>
   <a href="https://www.npmjs.com/package/@otpdock/client"><img src="https://img.shields.io/npm/v/@otpdock/client.svg" alt="Version"></a>
   <a href="https://www.npmjs.com/package/@otpdock/client"><img src="https://img.shields.io/npm/dm/@otpdock/client.svg" alt="Downloads"></a>
   <a href="https://www.npmjs.com/package/@otpdock/client"><img src="https://img.shields.io/npm/types/@otpdock/client.svg" alt="Types"></a>
@@ -48,16 +47,22 @@ First, get your API key from your [OTPDock Dashboard](https://otpdock.com/dashbo
 ```typescript
 import { OtpDockClient } from '@otpdock/client';
 
-const otpClient = new OtpDockClient('your-api-key');
+// Initialize the client with your API key
+const client = new OtpDockClient('your_api_key_here');
 
-const otp = await otpClient.getOtp({
-  inbox: 'test123',
-  since: Date.now() - 60_000, // optional: only check emails from last minute
-  timeout: 10000,             // optional: timeout after 10 seconds
-  interval: 1000              // optional: check every second
+// Generate a temporary inbox
+const inbox = await client.generateTemporaryInbox({
+  prefix: 'e2e-test' // Optional prefix for the email address
 });
 
-console.log('Received OTP:', otp);
+// Get the email address for your test
+console.log(inbox.email); // e.g. e2e-test-abc123@otpdock.com
+
+// Wait for and retrieve the OTP code
+const otp = await inbox.getOtp({
+  timeout: 20000, // Maximum time to wait (default: 10000ms)
+  interval: 1000  // Polling interval (default: 1000ms)
+});
 ```
 
 ## Usage with Testing Frameworks
@@ -68,25 +73,24 @@ console.log('Received OTP:', otp);
 import { test, expect } from '@playwright/test';
 import { OtpDockClient } from '@otpdock/client';
 
-test('user registration flow', async ({ page }) => {
-  const otpClient = new OtpDockClient(process.env.OTPDOCK_API_KEY);
-  const testEmail = 'test123@xyz.otpdock.com';  // Your inbox at otpdock.com
+const client = new OtpDockClient('your_api_key_here');
 
-  // Fill registration form
-  await page.fill('[name="email"]', testEmail);
-  await page.click('#submit-registration');
+test('sign-up with email verification', async ({ page }) => {
+  // Generate a temporary inbox
+  const inbox = await client.generateTemporaryInbox();
 
-  // Wait for and retrieve OTP
-  const otp = await otpClient.getOtp({
-    inbox: 'test123',
-    timeout: 15000
-  });
+  // Fill out the registration form
+  await page.goto('/sign-up');
+  await page.getByLabel(/Email/i).fill(inbox.email);
+  await page.getByLabel(/Password/i).fill('Test123!@#');
+  await page.getByRole('button', { name: /Create Account/i }).click();
 
-  // Enter OTP
-  await page.fill('[name="otp"]', otp);
-  await page.click('#verify-otp');
-
-  await expect(page.locator('.success-message')).toBeVisible();
+  // Wait for and retrieve the OTP code
+  const otp = await inbox.getOtp({ timeout: 20000 });
+  
+  // Complete verification
+  await page.getByLabel(/Verification code/i).fill(otp);
+  await page.getByRole('button', { name: /Verify/i }).click();
 });
 ```
 
@@ -95,63 +99,67 @@ test('user registration flow', async ({ page }) => {
 ```typescript
 import { OtpDockClient } from '@otpdock/client';
 
-Cypress.Commands.add('getOtp', (inbox: string) => {
-  const client = new OtpDockClient(Cypress.env('OTPDOCK_API_KEY'));
-  return client.getOtp({ inbox });
-});
+const client = new OtpDockClient('your_api_key_here');
 
-it('completes email verification', () => {
-  const testEmail = 'test123@xyz.otpdock.com';  // Your inbox at otpdock.com
-  
-  cy.visit('/register');
-  cy.get('[name="email"]').type(testEmail);
-  cy.get('#submit-registration').click();
-  
-  cy.getOtp('test123').then(otp => {
-    cy.get('[name="otp"]').type(otp);
-    cy.get('#verify-otp').click();
-    cy.get('.success-message').should('be.visible');
+describe('Sign Up Flow', () => {
+  it('completes sign-up with email verification', () => {
+    // Generate a temporary inbox
+    cy.wrap(client.generateTemporaryInbox()).then((inbox) => {
+      // Fill out the registration form
+      cy.visit('/sign-up');
+      cy.get('[data-cy=email-input]').type(inbox.email);
+      cy.get('[data-cy=password-input]').type('Test123!@#');
+      cy.get('[data-cy=submit-button]').click();
+
+      // Wait for and retrieve the OTP code
+      cy.wrap(inbox.getOtp({ timeout: 20000 })).then((otp) => {
+        // Complete verification
+        cy.get('[data-cy=otp-input]').type(otp);
+        cy.get('[data-cy=verify-button]').click();
+      });
+    });
   });
 });
 ```
 
 ## API Reference
 
-### `OtpDockClient`
+### OtpDockClient
 
 #### Constructor
 
 ```typescript
-constructor(apiKey: string)
+new OtpDockClient(apiKey: string, config?: Config)
 ```
-
-Creates a new OTPDock client instance.
 
 #### Methods
 
-##### `getOtp(options: GetOtpOptions): Promise<string>`
+- `generateTemporaryInbox(options?: GenerateInboxOptions): Promise<TemporaryInbox>`
+  - Creates a new temporary email inbox for testing
+  - Options:
+    - `prefix?: string` - Prefix for the generated email address
 
-Fetches an OTP from the specified inbox.
+### TemporaryInbox
 
-Options:
-- `inbox: string` - The inbox name (required)
-- `since?: number` - Unix timestamp to filter emails (optional)
-- `timeout?: number` - Maximum time to wait in ms (default: 30000)
-- `interval?: number` - Polling interval in ms (default: 1000)
+#### Properties
 
-Returns: Promise resolving to the OTP string
+- `email: string` - The email address of this inbox
 
-## Configuration
+#### Methods
 
-The client can be configured through environment variables:
+- `getOtp(options?: GetOtpOptions): Promise<string>`
+  - Waits for and retrieves an OTP code from the inbox
+  - Options:
+    - `timeout?: number` - Maximum time to wait in milliseconds (default: 10000)
+    - `interval?: number` - Polling interval in milliseconds (default: 1000)
+    - `since?: number` - Only check emails after this timestamp (default: Date.now())
+    - `extractOtp?: (emailBody: string) => string | null` - Custom function to extract OTP
 
-```bash
-OTPDOCK_API_KEY=your-api-key
-OTPDOCK_TIMEOUT=30000    # Optional: Default timeout in ms
-OTPDOCK_INTERVAL=1000    # Optional: Default polling interval in ms
-```
+## Documentation
 
-> 💡 You can find your API key in your [OTPDock Dashboard](https://otpdock.com/dashboard) under API Settings.
+For detailed documentation and examples, visit [docs.otpdock.com](https://docs.otpdock.com).
+
+> 💡 You can find your API key in your [OTPDock Settings](https://app.otpdock.com/settings).
 
 ## Best Practices
 
@@ -160,24 +168,10 @@ OTPDOCK_INTERVAL=1000    # Optional: Default polling interval in ms
 3. **Clean Up**: Delete test emails after your tests complete
 4. **Secure API Keys**: Never commit API keys to your repository. Get your API key from [otpdock.com/dashboard](https://otpdock.com/dashboard).
 
-## Error Handling
-
-```typescript
-try {
-  const otp = await client.getOtp({ inbox: 'test123' });
-} catch (error) {
-  if (error.message.includes('timeout')) {
-    console.error('OTP not received in time');
-  } else if (error.status === 401) {
-    console.error('Invalid API key');
-  }
-}
-```
-
 ## Support
 
 - 📚 [Official Documentation](https://docs.otpdock.com)
-- 💬 [Contact Support](https://otpdock.com/support)
+- 💬 [Contact Support](mailto:support@otpdock.com)
 - 🐛 [Report Issues](https://github.com/otpdock/node-client/issues)
 
 ## Security
@@ -188,4 +182,3 @@ For security issues, please email support@otpdock.com instead of using the issue
 
 Copyright (c) OTPDock. All rights reserved.
 
-Licensed under the [MIT License](./LICENSE).

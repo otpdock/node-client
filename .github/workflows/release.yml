@@ -70,7 +70,13 @@ jobs:
         run: echo "tag=v$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - name: Publish to NPM with beta tag
-        run: npm publish --access public --tag beta
+        run: |
+          if [[ "${{ github.event.head_commit.message }}" == *"[latest]"* ]]; then
+            npm publish --access public --tag beta
+            npm dist-tag add @otpdock/client@$(node -p "require('./package.json').version") latest
+          else
+            npm publish --access public --tag beta
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
